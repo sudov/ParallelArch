@@ -16,6 +16,7 @@ void pbksb(void) {
   double **a,*b;
   int n,p;
   GET_PID(pid);
+  // printf(pid);
   a = gm->a;
   b = gm->b;
   n = gm->n;
@@ -23,9 +24,9 @@ void pbksb(void) {
   block = n/p;
   start = block*pid;
   end = start+block-1;
-  for(j = n-1; j > end; j--)
-    WAITPAUSE(gm->pse[j])
-  for(i = end; i >= start; i--) {
+  // for(j = n-1; j > end; j=j-1)
+  //   WAITPAUSE(gm->pse[j])
+  for(i = end; i >= start; i=i-1) {
     sum = b[i];
     for(j = n-1; j > i; j--)
       sum -= a[i][j]*b[j];
@@ -50,15 +51,7 @@ int main(int argc,char **argv) {
   assert(p <= 8);
   n = gm->n;
   a = gm->a = (double**)G_MALLOC(n*sizeof(double*));
-
-  int eigth = n/8;
-  int current = n/8;
-
   for(i = 0; i < n; i++) {
-    if (i == current || i == 0) {
-      current += eigth;
-      CREATE(pbksb)
-    }
     a[i] = (double*)G_MALLOC(n*sizeof(double));
     for(j = i;j < n;j++){
        a[i][j] = count;
@@ -73,8 +66,8 @@ int main(int argc,char **argv) {
   gm->pse = (char*)G_MALLOC(n*sizeof(char));
   for(i = 0; i < n; i++)
     CLEARPAUSE(gm->pse[i])
-  // for(i = 0; i < p-1; i++)
-  //   CREATE(pbksb)
+  for(i = 0; i < p-1; i++)
+    CREATE(pbksb)
   CLOCK(t1)
   pbksb();
   WAIT_FOR_END(p-1)
@@ -89,4 +82,3 @@ int main(int argc,char **argv) {
   MAIN_END
   return 0;
 }
-
