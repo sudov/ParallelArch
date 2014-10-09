@@ -32,11 +32,17 @@ typedef struct {
   p = gm->p;
 
   for (i = n-pid-1; i >= 0; i -= p) {
-    if (i < n - 1) WAITPAUSE(gm->pse[i+1])
+    printf("Processor %d is computing row %u\n",pid,i);
 
     sum = b[i];
-    for (j = n-1; j > i; j--) sum -= a[i][j]*b[j];
+    for (j = n-1; j > i; j--) {
+      if (j < n - 1) WAITPAUSE(gm->pse[j])
+      printf("sum[%d] = %f - %f*%f\n",i,sum,a[i][j],b[j]);
+      sum -= a[i][j]*b[j];
+      printf("Intermediate value for x%d is %f, i=%d, j=%d\n",i,sum,i,j);
+    }
     b[i] = sum/a[i][i];
+    printf("x%d = %f\n",i,b[i]);
     SETPAUSE(gm->pse[i])
   }
  }
