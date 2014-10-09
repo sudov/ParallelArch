@@ -31,7 +31,7 @@ typedef struct {
   n = gm->n;
   p = gm->p;
 
-  for (i = n-pid-1; i >= 0; i -= p) {
+  for (i = n-pid-1; i >= 0; i -= p) {  
     sum = b[i];
     for (j = n-1; j > i; j--) {
       if (i < (n - 1) && j != i) {
