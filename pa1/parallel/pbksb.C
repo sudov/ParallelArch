@@ -16,22 +16,25 @@ void pbksb(void) {
   double **a,*b;
   int n,p;
   GET_PID(pid);
-  // printf(pid);
+  printf("Proc number :%u \n", pid);
   a = gm->a;
   b = gm->b;
   n = gm->n;
   p = gm->p;
-  block = n/p;
-  start = block*pid;
-  end = start+block-1;
-  // for(j = n-1; j > end; j=j-1)
-  //   WAITPAUSE(gm->pse[j])
-  for(i = end; i >= start; i=i-1) {
+
+  for(i = n-pid-1; i >= 0; i=i-8) { 
+    printf("Proc number:%u \n", pid);
+    if (i < 99) {
+      printf("Stalling %u \n", i+1);
+      WAITPAUSE(gm->pse[i+1])
+    }
     sum = b[i];
-    for(j = n-1; j > i; j--)
+    for(j = n-pid-1; j > i; j--)
       sum -= a[i][j]*b[j];
-    b[i] = sum/a[i][i];
+    b[i] = sum/a[i][i]; 
+    printf("In %u \n", pid);
     SETPAUSE(gm->pse[i])
+    printf("out %u \n", pid);
   }
 }
 

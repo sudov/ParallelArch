@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   bksb(a,b,n);
   CLOCK(t2)
   printf("Elapsed: %u microseconds\n",t2-t1);
-  for(i = 0; i < n; i++) printf("%lf ", b[i]);
+  // for(i = 0; i < n; i++) printf("%lf ", b[i]);
   printf("\n");
   MAIN_END
   return 0;
