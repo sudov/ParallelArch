@@ -1,0 +1,2 @@
+#!/bin/sh
+./nqueens-par 100 8
