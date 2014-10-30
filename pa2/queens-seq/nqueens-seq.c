@@ -1,13 +1,110 @@
-MAIN_ENV
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <assert.h>
+
+typedef struct simplelock lock;
+
+typedef struct struct_ANL_Globals {
+   int nextPid;	
+   
+	lock *anlLock;
+;
+} ANLGlobalsStruct;
+
+ANLGlobalsStruct *ANLGlobals;
+
+typedef struct anl_barrier {
+    
+	lock *lock;
+
+    volatile int count;
+    volatile int spin;
+    volatile int inuse;
+} anl_barrier;
+
+int _anl_reserved_fd;
+int _anl_reserved_pid;
+int _anl_reserved_nprocs;
+
+
 
 //========================================================================
 // Global definitions
 //========================================================================
-
-int n;
-int total;
-char **maxBoard;
-int maxProfit;
+int n, total, maxProfit;
+char **maxBoard, **initialBoard;
 
 //========================================================================
 // Helper methods
@@ -21,7 +118,6 @@ int getQueenColumn (int row, char **currentBoard) {
       return col;
     }
   }
-
   return -1;
 }
 
@@ -57,7 +153,7 @@ void printBoard(char **board) {
 //========================================================================
 // N-Queens Algorithm
 //========================================================================
- 
+
 void nqueens(int i, char **currentBoard, int currentProfit, int numQ) {
   register int j;
 
@@ -67,9 +163,13 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ) {
         // Creating a new board
         register int x,y;
         char **newBoard;
-        newBoard = (char**)G_MALLOC(n*sizeof(char*));
+        newBoard = (char**)
+   mmap(NULL, n*sizeof(char*), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
         for (x = 0; x < n; x++) {
-          newBoard[x] = (char*)G_MALLOC(n*sizeof(char*));
+          newBoard[x] = (char*)
+   mmap(NULL, n*sizeof(char*), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
           for (y = 0; y < n; y++) newBoard[x][y] = currentBoard[x][y];
         }
 
@@ -94,11 +194,31 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ) {
 
 int main (int argc, char **argv) {
   int i, j;
-  char **initialBoard;
   unsigned int t1, t2, t3;
 
-  MAIN_INITENV
+  
+{
+   if ((_anl_reserved_fd=open("/dev/zero", O_RDWR)) == -1) {
+      perror("ANL Init cannot open /dev/zero!");
+      exit(99);
+   }
 
+   if ((ANLGlobals = (ANLGlobalsStruct *)mmap(NULL, 
+	sizeof(ANLGlobalsStruct), PROT_READ|PROT_WRITE, MAP_SHARED, 
+	_anl_reserved_fd, 0)) == MAP_FAILED) {
+     perror ("ANL Global Initialization failed!");
+     exit(99);
+   }
+
+   
+   if ((ANLGlobals->anlLock = (lock*)mmap(NULL, getpagesize(), PROT_READ|PROT_WRITE, 
+       	MAP_SHARED, _anl_reserved_fd, 0)) == MAP_FAILED) {
+      perror ("LockInit failed!");
+   }
+   s_lock_init (ANLGlobals->anlLock);
+;
+   _anl_reserved_nprocs = 1;
+}
   //Enforce arguments
   if (argc != 2) {
     printf("Usage: nqueens-seq <N>\nAborting.\n");
@@ -107,26 +227,52 @@ int main (int argc, char **argv) {
 
   n = atoi(argv[1]);
   total = 0;
-
-  maxBoard = (char**)G_MALLOC(n*sizeof(char*));
-  initialBoard = (char**)G_MALLOC(n*sizeof(char*));
+  maxBoard     = (char**)
+   mmap(NULL, n*sizeof(char*), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
+  initialBoard = (char**)
+   mmap(NULL, n*sizeof(char*), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
   for (i = 0; i < n; i++) {
-    maxBoard[i] = (char*)G_MALLOC(n*sizeof(char));
-    initialBoard[i] = (char*)G_MALLOC(n*sizeof(char));
+    maxBoard[i] = (char*)
+   mmap(NULL, n*sizeof(char), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
+    initialBoard[i] = (char*)
+   mmap(NULL, n*sizeof(char), PROT_READ|PROT_WRITE, MAP_SHARED, _anl_reserved_fd, 0);
+;
     for (j = i; j < n; j++) {
       maxBoard[i][j] = 0;
       initialBoard[i][j] = 0;
     }
   }
 
-  CLOCK(t1)
+  
+{
+   struct timeval tv;
+   gettimeofday(&tv,NULL);
+   t1 = ((tv.tv_sec & 0x7ff) * 1000000) + tv.tv_usec;
+}
   nqueens(0,initialBoard,0,0);
-  CLOCK(t2)
+  
+{
+   struct timeval tv;
+   gettimeofday(&tv,NULL);
+   t2 = ((tv.tv_sec & 0x7ff) * 1000000) + tv.tv_usec;
+}
   printf("Printing maximum profit board\n");
   printBoard(maxBoard);
-  CLOCK(t3)
+  
+{
+   struct timeval tv;
+   gettimeofday(&tv,NULL);
+   t3 = ((tv.tv_sec & 0x7ff) * 1000000) + tv.tv_usec;
+}
   printf("Computation time: %u microseconds\n", t2-t1);
   printf("Printing time:    %u microseconds\n", t3-t2);
-  MAIN_END
+  {
+  fflush(stdout); 
+  fflush(stderr); 
+  exit(0);
+}
   return 0;
 }

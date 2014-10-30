@@ -4,26 +4,14 @@ MAIN_ENV
 //========================================================================
 // Global definitions
 //========================================================================
-
-typedef struct {
-  int n;
-  int p;
-  int total;
-  char **maxBoard;
-  char **initialBoard;
-  int maxProfit;
-} GM;
-
-GM *gm;
+int n, total, maxProfit;
+char **maxBoard, **initialBoard;
 
 //========================================================================
 // Helper methods
 //========================================================================
 
 int getQueenColumn (int row, char **currentBoard) {
-  int n;
-  n = gm->n;
-
   register int col;
 
   for (col = 0; col < n; col++) {
@@ -35,9 +23,6 @@ int getQueenColumn (int row, char **currentBoard) {
 }
 
 char canPlace (int row, int col, char **currentBoard) {
-  int n;
-  n = gm->n;
-
   register int i, j;
 
   for (i = 0; i < n; i++) {
@@ -52,12 +37,6 @@ char canPlace (int row, int col, char **currentBoard) {
 }
 
 void printBoard(char **board) {
-  int n, total, maxProfit;
-  char **maxBoard, **initialBoard;
-  n             = gm->n;
-  total         = gm->total;
-  maxProfit     = gm->maxProfit;
-  
   register int i, j, k;
 
   for (i = 0; i < n; i++) {
@@ -75,32 +54,8 @@ void printBoard(char **board) {
 //========================================================================
 // N-Queens Algorithm
 //========================================================================
- 
-void nqueens_wrapper(void) {
-  int n, total, maxProfit;
-  char **maxBoard, **initialBoard;
-  
-  n             = gm->n;
-  total         = gm->total;
-  maxBoard      = gm->maxBoard;
-  initialBoard  = gm->initialBoard;
-  maxProfit     = gm->maxProfit;
-
-  int i;
-  for (i = 0; i < n; i++) {
-    initialBoard[i][0] = 1;
-    nqueens(i+1,initialBoard,0,1);
-    initialBoard[i][0] = 0;
-  }
-}
 
 void nqueens(int i, char **currentBoard, int currentProfit, int numQ) {
-  int n, total, maxProfit;
-  char **maxBoard, **initialBoard;
-  n             = gm->n;
-  total         = gm->total;
-  maxBoard      = gm->maxBoard;
-  maxProfit     = gm->maxProfit;
   register int j;
 
   if (i < n) {
@@ -135,10 +90,7 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ) {
 //========================================================================
 
 int main (int argc, char **argv) {
-  int i, j, p, n;
-  int total;
-  char **maxBoard;
-  char **initialBoard;
+  int i, j;
   unsigned int t1, t2, t3;
 
   MAIN_INITENV
@@ -147,30 +99,22 @@ int main (int argc, char **argv) {
     printf("Usage: nqueens-seq <N>\nAborting.\n");
     exit(0);
   }
-  gm = (GM*)G_MALLOC(sizeof(GM));
-  p = gm->p = atoi(argv[2]);
-  gm->n = atoi(argv[1]);
-  n = gm->n;
-  
-  assert(p > 0);
-  assert(p <= 8);
 
-  total = gm->total = 0;
-  maxBoard     = gm->maxBoard = (char**)G_MALLOC(n*sizeof(char*));
-  initialBoard = gm->initialBoard = (char**)G_MALLOC(n*sizeof(char*));
+  n = atoi(argv[1]);
+  total = 0;
+  maxBoard     = (char**)G_MALLOC(n*sizeof(char*));
+  initialBoard = (char**)G_MALLOC(n*sizeof(char*));
   for (i = 0; i < n; i++) {
     maxBoard[i] = (char*)G_MALLOC(n*sizeof(char));
     initialBoard[i] = (char*)G_MALLOC(n*sizeof(char));
-    for (j = i; j < gm->n; j++) {
+    for (j = i; j < n; j++) {
       maxBoard[i][j] = 0;
       initialBoard[i][j] = 0;
     }
   }
 
-  for(i = 0; i < 8; i++)
-    CREATE(nqueens_wrapper)
   CLOCK(t1)
-  nqueens_wrapper();
+  nqueens(0,initialBoard,0,0);
   CLOCK(t2)
   printf("Printing maximum profit board\n");
   printBoard(maxBoard);
