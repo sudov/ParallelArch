@@ -4,13 +4,14 @@ MAIN_ENV
 //========================================================================
 // Global definitions
 //========================================================================
+int p = 8;
 
 typedef struct {
   int n;
-  int p;
   int total;
   char **maxBoard;
   char **initialBoard;
+  char pse;     // length-n array of flags indicating when x[i] is ready
 } GM; 
 
 GM *gm;
@@ -96,10 +97,6 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ, int maxPro
 
         newBoard[i][j] = 1;
         int profitAdd = abs(i - j);
-
-        // printf("Intermediate start:\n");
-        // printBoard(newBoard, global_max_profit);
-        // printf("Intermediate end\n");
         
         nqueens(i + 1, newBoard, currentProfit + profitAdd, numQ + 1, maxProfIndex, maxProfit);
       }
@@ -107,8 +104,14 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ, int maxPro
   }
   else {
     total++;
+    int x, y;
     if (currentProfit > maxProfit[maxProfIndex]) {
-      maxBoard = currentBoard;
+      for (x = 0; x < n; x++) {
+        for (y = 0; y < n; y++) {
+          maxBoard[x][y] = currentBoard[x][y];
+        }
+      }
+      // maxBoard = currentBoard;
       maxProfit[maxProfIndex] = currentProfit;
     }
   }
@@ -128,15 +131,20 @@ void nqueens_wrapper(void) {
   for (i = 0; i < n; i++) {
     maxProfit[i] = 0;
   }
+  
+  int pid;
+  GET_PID(pid);
 
-  for (i = 0; i < n; i++) { 
+  for (i = pid; i < n; i += p) { 
     initialBoard[0][i] = 1;
-    nqueens(i,initialBoard,0,1,i, maxProfit);
+    printf("started %d \n", i);
+    nqueens(1,initialBoard,0,1,i, maxProfit);
     initialBoard[0][i] = 0;
   }
 
   int max = maxProfit[0];
   for (i = 0; i < n; i++) {
+    // printf("for %d profit is %d \n", i, maxProfit[i]);
     if (max < maxProfit[i]) {
       max = maxProfit[i];
     }
@@ -162,12 +170,11 @@ int main (int argc, char **argv) {
     exit(0);
   }
   gm = (GM*)G_MALLOC(sizeof(GM)); 
-  // p = gm->p = atoi(argv[2]);
   gm->n = atoi(argv[1]); 
+
   n = gm->n;
   global_max_profit = 0;
-  // assert(p > 0); 
-  // assert(p <= 8);
+
 
   total = gm->total = 0;
   maxBoard     = gm->maxBoard = (char**)G_MALLOC(n*sizeof(char*));
@@ -185,6 +192,7 @@ int main (int argc, char **argv) {
     CREATE(nqueens_wrapper)
   CLOCK(t1)
   nqueens_wrapper();
+  WAIT_FOR_END(7);
   CLOCK(t2)
   printf("Printing maximum profit board\n");
   printBoard(maxBoard, global_max_profit);
