@@ -75,7 +75,7 @@ void printBoard(char **board, int global_max_profit) {
 //========================================================================
 void nqueens(int i, char **currentBoard, int currentProfit, int numQ, int maxProfIndex, int maxProfit[]) {
   int n, total;
-  char **maxBoard, **initialBoard;
+  char **maxBoard;
   n             = gm->n;
   total         = gm->total;
   maxBoard      = gm->maxBoard;
@@ -90,11 +90,17 @@ void nqueens(int i, char **currentBoard, int currentProfit, int numQ, int maxPro
         newBoard = (char**)G_MALLOC(n*sizeof(char*));
         for (x = 0; x < n; x++) {
           newBoard[x] = (char*)G_MALLOC(n*sizeof(char*));
-          for (y = 0; y < n; y++) newBoard[x][y] = currentBoard[x][y];
+          for (y = 0; y < n; y++) 
+            newBoard[x][y] = currentBoard[x][y];
         }
 
         newBoard[i][j] = 1;
         int profitAdd = abs(i - j);
+
+        // printf("Intermediate start:\n");
+        // printBoard(newBoard, global_max_profit);
+        // printf("Intermediate end\n");
+        
         nqueens(i + 1, newBoard, currentProfit + profitAdd, numQ + 1, maxProfIndex, maxProfit);
       }
     }
@@ -123,10 +129,10 @@ void nqueens_wrapper(void) {
     maxProfit[i] = 0;
   }
 
-  for (i = 0; i < n; i++) {
-    initialBoard[i][0] = 1;
-    nqueens(i+1,initialBoard,0,1,i, maxProfit);
-    initialBoard[i][0] = 0;
+  for (i = 0; i < n; i++) { 
+    initialBoard[0][i] = 1;
+    nqueens(i,initialBoard,0,1,i, maxProfit);
+    initialBoard[0][i] = 0;
   }
 
   int max = maxProfit[0];
@@ -135,6 +141,7 @@ void nqueens_wrapper(void) {
       max = maxProfit[i];
     }
   }
+  global_max_profit = max;
 }
 
 //========================================================================
@@ -154,12 +161,12 @@ int main (int argc, char **argv) {
     printf("Usage: nqueens-seq <N>\nAborting.\n");
     exit(0);
   }
-  gm = (GM*)G_MALLOC(sizeof(GM));
+  gm = (GM*)G_MALLOC(sizeof(GM)); 
   // p = gm->p = atoi(argv[2]);
-  gm->n = atoi(argv[1]);
+  gm->n = atoi(argv[1]); 
   n = gm->n;
   global_max_profit = 0;
-  // assert(p > 0);
+  // assert(p > 0); 
   // assert(p <= 8);
 
   total = gm->total = 0;
