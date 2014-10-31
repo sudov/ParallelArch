@@ -81,6 +81,12 @@ void updateProfit(int* results) {
 //========================================================================
 // N-Queens Algorithm
 //========================================================================
+// 
+//  This sequential algorithm is based heavily on an approach published 
+//  online by Jeff Somers, and can be found at 
+//                              jsomers.com/nqueen_demo/nqueens.html
+//
+//========================================================================
 
 void nqueens(void) {
   int results[n];
