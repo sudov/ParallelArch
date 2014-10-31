@@ -89,6 +89,12 @@ void updateProfit(int* results) {
 //========================================================================
 // Parallel N-Queens Algorithm
 //========================================================================
+//
+//  The sequential algorithm that the following code was derived from is
+//  based heavily on optimizations published online by Jeff Somers, and
+//  can be found at jsomers.com/nqueen_demo/nqueens.html
+//
+//========================================================================
 
 // options: split up work within the algorithm OR split up on outside,
 // each processor maintains individual maxProfit and such
