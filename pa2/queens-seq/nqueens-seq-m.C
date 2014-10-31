@@ -31,10 +31,10 @@ void printBoard(int* board) {
 }
 
 void printResults() {
-  printBoard(maxBoard);
-  printf("Maximum profit board\n");
   printf("Max profit: %d\n", maxProfit);
   printf("Total solutions: %d\n", total);
+  printf("Maximum profit board\n");
+  printBoard(maxBoard);
 }
 
 

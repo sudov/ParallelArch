@@ -24,10 +24,10 @@ GM *gm;
 void printBoard(int* board) {
   register int i, j;
   int row, bit;
+  int n = gm->n;
 
   for (i = 0; i < n; i++) {
     bit = board[i];
- //   printf("results[%d] = %d\n", i, board[i]);
     row = bit ^ (bit & (bit - 1));
 
     for (j = 0; j < n; j++) {
@@ -39,10 +39,11 @@ void printBoard(int* board) {
 }
 
 void printResults() {
-  printBoard(maxBoard);
   printf("Maximum profit board\n");
-  printf("Max profit: %d\n", maxProfit);
-  printf("Total solutions: %d\n", total);
+  printf("Max profit: %d\n", gm->maxProfit);
+  printf("Total solutions: %d\n", gm->total);
+  printf("Maximum profit board\n");
+  printBoard(gm->maxBoard);
 }
 
 
@@ -64,26 +65,40 @@ int bitsToValue(int bits){
 
 void updateProfit(int* results) {
   register int i;
+  register n = gm->n;
   register int profit0 = 0;
   register int profit1 = 0;
+
+  //DEBUG
+  int pid;
+  GET_PID(pid)
 
   for (i = 0; i < n; i++) {
     profit0 += abs(i - bitsToValue(results[i]));
     profit1 += abs((n - 1 - i) - bitsToValue(results[i]));
   }
 
-  if ((profit0 > maxProfit) && (profit0 >= profit1)) {
-    maxProfit = profit0;
+  LOCK(gm->profitLock)
+  if ((profit0 > gm->maxProfit) && (profit0 >= profit1)) {
+    gm->maxProfit = profit0;
+    UNLOCK(gm->profitLock)
+    LOCK(gm->boardLock)
     for (i = 0; i < n; i++) {
-      maxBoard[i] = results[i];
+      gm->maxBoard[i] = results[i];
     }
+    UNLOCK(gm->boardLock)
   }
-  else if ((profit1 > maxProfit) && (profit1 > profit0)) {
-    maxProfit = profit1;
+  else if ((profit1 > gm->maxProfit) && (profit1 > profit0)) {
+    gm->maxProfit = profit1;
+    UNLOCK(gm->profitLock)
+    LOCK(gm->boardLock)
     for (i = 0; i < n; i++) {
-      maxBoard[i] = results[n-1-i];
+      gm->maxBoard[i] = results[n-1-i];
     }
+    UNLOCK(gm->boardLock)
   }
+  else UNLOCK(gm->profitLock)
+
 }
 
 //========================================================================
@@ -99,14 +114,7 @@ void updateProfit(int* results) {
 // options: split up work within the algorithm OR split up on outside,
 // each processor maintains individual maxProfit and such
 
-void pnqueens(void) {
-  int pid;
-  int n, p;
-
-  GET_PID(pid);
-  n = gm->a;
-  p = gm->p
-
+void pnqueens(int bits, int n) {
   int results[n];
 
   int stack[n+2];
@@ -116,83 +124,81 @@ void pnqueens(void) {
   int updiags[n];
   int dndiags[n];
 
-  register int row = 0;
+  register int row=1;
   register int lsb;
-  register int bits;
 
-  int i;
-  int oddN = n & 1;
   int mask = (1 << n) - 1;
 
   stack[0] = -1;
+  stackPointer = stack;
+  *stackPointer = 0;
+  stackPointer++;
+  row = 1;
 
-  for (i = 0; i < (1 + oddN); i++) {
-    bits = 0;
+  results[0] = bits;
+  columns[0] = 0;
+  columns[1] = bits;
+  updiags[0] = 0;
+  updiags[1] = bits << 1;
+  dndiags[0] = 0;
+  dndiags[1] = bits >> 1;
 
-    if (!i) {
-      bits = (1 << (n >> 1)) - 1;
-      stackPointer = stack + 1;
+  bits = mask & ~(columns[1] | updiags[1] | dndiags[1]);
 
-      results[0] = 0;
-      columns[0] = 0;
-      updiags[0] = 0;
-      dndiags[0] = 0;
+  while(1) {
+    if (!bits) {
+      stackPointer--;
+      if (stackPointer == stack) {
+        break;
+      }
+      bits = *stackPointer;
+      row--;
     }
     else {
-      bits = 1 << (n >> 1);
-      row = 1;
+      lsb = bits ^ (bits & (bits - 1));
+      bits &= ~lsb;
 
-      results[0] = bits;
-      columns[0] = 0;
-      columns[1] = bits;
-      updiags[0] = 0;
-      updiags[1] = bits << 1;
-      dndiags[0] = 0;
-      dndiags[1] = bits >> 1;
+      results[row] = lsb;
 
-      *stackPointer = 0;
-      stackPointer++;
-      bits = (bits - 1) >> 1;
-    }
-    
-    //possibly begin splitting up work here
-    while(1) {
-      if (!bits) {
+      if (row < n-1) {
+        int rowLast = row;
+        row++;
+        columns[row] = columns[rowLast] | lsb;
+        updiags[row] = ( updiags[rowLast] | lsb ) << 1;
+        dndiags[row] = ( dndiags[rowLast] | lsb ) >> 1;
+          
+        *stackPointer = bits;
+        stackPointer++;
+
+        bits = mask & ~(columns[row] | updiags[row] | dndiags[row]);
+      }
+      else {
+        LOCK(gm->totalLock)
+        gm->total = gm->total+2;
+        UNLOCK(gm->totalLock)
+
+        updateProfit(results);
+
         stackPointer--;
-        if (stackPointer == stack) break;
         bits = *stackPointer;
         row--;
       }
-      else {
-        lsb = bits ^ (bits & (bits - 1));
-        bits &= ~lsb;
-
-        results[row] = lsb;
-
-        if (row < n-1) {
-          int rowLast = row;
-          row++;
-          columns[row] = columns[rowLast] | lsb;
-          updiags[row] = ( updiags[rowLast] | lsb ) << 1;
-          dndiags[row] = ( dndiags[rowLast] | lsb ) >> 1;
-          
-          *stackPointer = bits;
-          stackPointer++;
-
-          bits = mask & ~(columns[row] | updiags[row] | dndiags[row]);
-        }
-        else {
-          total++;
-          updateProfit(results);
-
-          stackPointer--;
-          bits = *stackPointer;
-          row--;
-        }
-      }
     }
   }
-  total *= 2;
+}
+
+void pnqueensWrapper(void) {
+  int pid;
+  int n, p, i;
+
+  GET_PID(pid);
+  n = gm->n;
+  p = gm->p;
+
+  for (i = 0+pid; i < (n + 1)/2; i+=p) {
+    int bits = (1 << i);
+    pnqueens(bits, n);
+  }
 }
 
 //========================================================================
@@ -200,7 +206,7 @@ void pnqueens(void) {
 //========================================================================
 
 int main (int argc, char **argv) {
-  int n, p, total, maxProfit;
+  int i, n, p, total, maxProfit;
   int* maxBoard;
   unsigned int t1, t2, t3;
 
@@ -219,12 +225,18 @@ int main (int argc, char **argv) {
   assert(p > 0);
   assert(p <= 8);
 
-  total = 0;
-  maxProfit = 0;
-  maxBoard = (int*)G_MALLOC(n*sizeof(int));
+  gm->total = 0;
+  gm->maxProfit = 0;
+  gm->maxBoard = (int*)G_MALLOC(n*sizeof(int));
+  
+  LOCKINIT(gm->totalLock);
+  LOCKINIT(gm->profitLock);
+  LOCKINIT(gm->boardLock);
+
+  for (i = 0; i < p-1; i++) CREATE(pnqueensWrapper)
 
   CLOCK(t1)
-  pnqueens();
+  pnqueensWrapper();
   WAIT_FOR_END(p-1)
   CLOCK(t2)
   printResults();
