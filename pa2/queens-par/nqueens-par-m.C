@@ -38,6 +38,7 @@ void printBoard(int* board) {
   }
 }
 
+
 void printResults() {
   printf("Maximum profit board\n");
   printf("Max profit: %d\n", gm->maxProfit);
@@ -45,7 +46,6 @@ void printResults() {
   printf("Maximum profit board\n");
   printBoard(gm->maxBoard);
 }
-
 
 
 int bitsToValue(int bits){
@@ -61,17 +61,11 @@ int bitsToValue(int bits){
 }
 
 
-
-
 void updateProfit(int* results) {
   register int i;
   register n = gm->n;
   register int profit0 = 0;
   register int profit1 = 0;
-
-  //DEBUG
-  int pid;
-  GET_PID(pid);
 
   for (i = 0; i < n; i++) {
     profit0 += abs(i - bitsToValue(results[i]));
@@ -194,8 +188,6 @@ void wrapper(void) {
   GET_PID(pid);
   n = gm->n;
   p = gm->p;
-
-  printf("process %d beginning work\n", pid);
 
   for (i = 0+pid; i < (n + 1)/2; i+=p) {
     int bits = (1 << i);
