@@ -71,7 +71,7 @@ void updateProfit(int* results) {
 
   //DEBUG
   int pid;
-  GET_PID(pid)
+  GET_PID(pid);
 
   for (i = 0; i < n; i++) {
     profit0 += abs(i - bitsToValue(results[i]));
@@ -187,13 +187,15 @@ void pnqueens(int bits, int n) {
   }
 }
 
-void pnqueensWrapper(void) {
+void wrapper(void) {
   int pid;
   int n, p, i;
 
   GET_PID(pid);
   n = gm->n;
   p = gm->p;
+
+  printf("process %d beginning work\n", pid);
 
   for (i = 0+pid; i < (n + 1)/2; i+=p) {
     int bits = (1 << i);
@@ -233,16 +235,17 @@ int main (int argc, char **argv) {
   LOCKINIT(gm->profitLock);
   LOCKINIT(gm->boardLock);
 
-  for (i = 0; i < p-1; i++) CREATE(pnqueensWrapper)
+  for (i = 0; i < p-1; i++) CREATE(wrapper)
 
   CLOCK(t1)
-  pnqueensWrapper();
+  wrapper();
   WAIT_FOR_END(p-1)
   CLOCK(t2)
   printResults();
   CLOCK(t3)
   printf("Computation time: %u microseconds\n", t2-t1);
   printf("Printing time:    %u microseconds\n", t3-t2);
+  G_FREE(maxBoard,n*sizeof(int))
   MAIN_END
   return 0;
 }
