@@ -70,7 +70,7 @@ int bitsToValue(int bits){
 //
 //========================================================================
 
-void pnqueens(int bits, int n) {
+void pnqueens(int bits, int n, char middle) {
   int localTotal = 0;
   int localMaxProfit = 0;
   int localMaxBoard[n];
@@ -132,26 +132,44 @@ void pnqueens(int bits, int n) {
         bits = mask & ~(columns[row] | updiags[row] | dndiags[row]);
       }
       else {
-        localTotal += 2;
-        register int k;
-        register int profit0 = 0;
-        register int profit1 = 0;
-
-        for (k = 0; k < n; k++) {
-          profit0 += abs(k - bitsToValue(results[k]));
-          profit1 += abs((n - 1 - k) - bitsToValue(results[k]));
-        }
-
-        if ((profit0 > localMaxProfit) && (profit0 >= profit1)) {
-          localMaxProfit = profit0;
+        if (!middle) {
+          localTotal += 2;
+          register int k;
+          register int profit0 = 0;
+          register int profit1 = 0;
+  
           for (k = 0; k < n; k++) {
-            localMaxBoard[k] = results[k];
+            profit0 += abs(k - bitsToValue(results[k]));
+            profit1 += abs((n - 1 - k) - bitsToValue(results[k]));
+          }
+  
+          if ((profit0 > localMaxProfit) && (profit0 >= profit1)) {
+            localMaxProfit = profit0;
+            for (k = 0; k < n; k++) {
+              localMaxBoard[k] = results[k];
+            }
+          }
+          else if (profit1 > localMaxProfit) {
+            localMaxProfit = profit1;
+            for (k = 0; k < n; k++) {
+              localMaxBoard[k] = results[k];
+            }
           }
         }
-        else if (profit1 > localMaxProfit) {
-          localMaxProfit = profit1;
+        else {
+          localTotal++;
+          register int k;
+          register int profit = 0;
+
           for (k = 0; k < n; k++) {
-            localMaxBoard[k] = results[k];
+            profit += abs(k - bitsToValue(results[k]));
+          }
+
+          if (profit > localMaxProfit) {
+            localMaxProfit = profit;
+            for (k = 0; k < n; k++) {
+              localMaxBoard[k] = results[k];
+            }
           }
         }
 
@@ -190,8 +208,9 @@ void wrapper(void) {
   p = gm->p;
 
   for (i = 0+pid; i < (n + 1)/2; i+=p) {
+    char middle = (i == (n+1)/2 -1);
     int bits = (1 << i);
-    pnqueens(bits, n);
+    pnqueens(bits, n, middle);
   }
 }
 
