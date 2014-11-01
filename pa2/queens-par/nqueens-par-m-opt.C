@@ -208,7 +208,7 @@ void wrapper(void) {
   p = gm->p;
 
   for (i = 0+pid; i < (n + 1)/2; i+=p) {
-    char middle = (i == (n+1)/2 -1);
+    char middle = ((i == (n+1)/2 -1) & (n & 1));
     int bits = (1 << i);
     pnqueens(bits, n, middle);
   }
