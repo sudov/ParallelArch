@@ -1,0 +1,3 @@
+#!/bin/sh
+./nqueens-par-m-opt 6 8
+

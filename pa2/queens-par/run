@@ -1,2 +1,2 @@
 #!/bin/sh
-./nqueens-par 100 8
+./nqueens-par-m 8 8

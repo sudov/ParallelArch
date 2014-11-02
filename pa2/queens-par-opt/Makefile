@@ -15,8 +15,8 @@ ASFLAGS = -c -m32
 LIBS = -lm
 
 .SILENT:
-TARGET = nqueens-par-m
-OFILESFROMC = nqueens-par-m.o
+TARGET = nqueens-par-m-opt
+OFILESFROMC = nqueens-par-m-opt.o
 OFILESFROMASM = lock.o
 OFILES = $(OFILESFROMC) $(OFILESFROMASM)
 
