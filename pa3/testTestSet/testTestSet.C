@@ -18,12 +18,12 @@ void pbksb(void) {
   CLOCK(gm->start[pid])
   N = gm->p;
   for (i = 0; i < (N-1); i++) {
-    ACQUIRE(gm->lock)
+    LOCK(gm->lock)
     q = 0;
     k = gm->p;
     M = gm->p;
     for (j = 0; j < (k-1); j++) q++;
-    RELEASE(gm->lock)
+    UNLOCK(gm->lock)
     p = 0;
     for (j = 0; j < (M-1); j++) p++;
   }
