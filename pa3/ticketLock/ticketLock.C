@@ -28,7 +28,7 @@ void pbksb(int pid) {
     gm->t += 1;
     for (j = 0; j < k; j++) p++;
     // Grab next ticket for processor
-    while (gm->t < 7);
+    while (gm->t < gm->p);
     ACQUIRE(gm->getTicket)
     gm->t += 1;
     r      = gm->t;

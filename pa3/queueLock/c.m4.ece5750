@@ -149,6 +149,25 @@ define(LOCKINIT, `
 define(LOCK,	 `s_lock($1);')
 define(UNLOCK,	 `s_unlock($1);')
 
+dnl -------------------------------------------------------------------------
+dnl LOCK implementation 
+dnl -------------------------------------------------------------------------
+
+define(LOCKDEC, `
+  lock *$1;
+')
+
+define(LOCKINIT, `
+   if (($1 = (lock*)mmap(NULL, getpagesize(), PROT_READ|PROT_WRITE, 
+        MAP_SHARED, _anl_reserved_fd, 0)) == MAP_FAILED) {
+      perror ("LockInit failed!");
+   }
+   s_lock_init ($1);
+')
+
+define(ACQUIRE,   `s_lock($1);')
+define(RELEASE,   `s_unlock($1);')
+
 
 dnl ----------------------------------------------------------------------
 dnl BARRIER implementations.
