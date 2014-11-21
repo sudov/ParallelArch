@@ -15,8 +15,8 @@ ASFLAGS = -c -m32
 LIBS = -lm
 
 .SILENT:
-TARGET = testSet
-OFILESFROMC = testSet.o
+TARGET = queueLock
+OFILESFROMC = queueLock.o
 OFILESFROMASM = lock.o
 OFILES = $(OFILESFROMC) $(OFILESFROMASM)
 

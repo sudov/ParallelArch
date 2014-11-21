@@ -60,6 +60,8 @@ s_lock:
 	movl	4(%esp), %eax		/* get the address of the lock */
 	movl	$1, %ecx
 setlock:
+	xchgl	%ecx, (%eax)
+	testl	%ecx, %ecx
 	jz	gotit			/* it was clear, return */
 wait:
 	cmpl	$0, (%eax)		/* wait to empty */
