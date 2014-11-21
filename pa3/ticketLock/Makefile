@@ -15,8 +15,8 @@ ASFLAGS = -c -m32
 LIBS = -lm
 
 .SILENT:
-TARGET = testSet
-OFILESFROMC = testSet.o
+TARGET = ticketLock
+OFILESFROMC = ticketLock.o
 OFILESFROMASM = lock.o
 OFILES = $(OFILESFROMC) $(OFILESFROMASM)
 

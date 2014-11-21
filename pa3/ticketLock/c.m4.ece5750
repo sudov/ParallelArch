@@ -146,7 +146,7 @@ define(LOCKINIT, `
    s_lock_init ($1);
 ')
 
-define(LOCK,	 `s_lock_try($1);')
+define(LOCK,	 `s_lock($1);')
 define(UNLOCK,	 `s_unlock($1);')
 
 
@@ -166,7 +166,7 @@ define(LOCKINIT, `
    s_lock_init ($1);
 ')
 
-define(ACQUIRE,   `s_lock_try($1);')
+define(ACQUIRE,   `s_lock($1);')
 define(RELEASE,   `s_unlock($1);')
 
 dnl ----------------------------------------------------------------------
