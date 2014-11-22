@@ -2,7 +2,7 @@ MAIN_ENV
 
 typedef struct {
   int *a; 
-  double *start, *end;
+  long int *start, *end;
   int p;
   LOCKDEC(lock);
 } GM;
@@ -45,8 +45,8 @@ int main(int argc,char **argv) {
 
   gm->a     = (int*)G_MALLOC(p*sizeof(int));
   for(i = 0; i < p; i++) gm->a[i] = 0;
-  gm->start = (double*)G_MALLOC(p*sizeof(double));
-  gm->end   = (double*)G_MALLOC(p*sizeof(double));
+  gm->start = (long int*)G_MALLOC(p*sizeof(long int));
+  gm->end   = (long int*)G_MALLOC(p*sizeof(long int));
 
   for(i = 0; i < p; i++)
     CREATE(pbksb)

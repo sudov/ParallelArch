@@ -2,7 +2,7 @@ MAIN_ENV
 
 typedef struct {
   int *a, *queue; 
-  float *start, *end;
+  long int *start, *end;
   int p, current;
   LOCKDEC(lock);
   LOCKDEC(increment);
@@ -54,8 +54,8 @@ int main(int argc,char **argv) {
   LOCKINIT(gm->lock);
   LOCKINIT(gm->increment);
   gm->a       = (int*)G_MALLOC(p*sizeof(int));
-  gm->start   = (float*)G_MALLOC(p*sizeof(float));
-  gm->end     = (float*)G_MALLOC(p*sizeof(float));
+  gm->start   = (long int*)G_MALLOC(p*sizeof(long int));
+  gm->end     = (long int*)G_MALLOC(p*sizeof(long int));
   p = gm->p   = atoi(argv[1]);
   gm->queue   = (int*)G_MALLOC(8*p*sizeof(int));
   gm->current = (int)G_MALLOC(sizeof(int));
