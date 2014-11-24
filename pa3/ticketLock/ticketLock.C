@@ -23,10 +23,10 @@ void ticketLock(void) {
   CLOCK(gm->start[pid])
   for (i = 0; i < N; i++) {
     //Get ticket
-    ACQUIRE(gm->getTicket)
+    LOCK(gm->getTicket)
     myTicket = gm->t;
     gm->t += 1;
-    RELEASE(gm->getTicket)
+    UNLOCK(gm->getTicket)
 
     //Wait for processor's turn in critical section
     while (myTicket != gm->r);
