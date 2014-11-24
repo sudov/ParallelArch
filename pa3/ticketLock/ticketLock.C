@@ -3,45 +3,42 @@ MAIN_ENV
 typedef struct {
   int *a; 
   long int *start, *end;
-  int p,t;
-  LOCKDEC(lock);
+  int p,t,r;
   LOCKDEC(getTicket);
 } GM;
 
 GM *gm;
 
-void pbksb(int pid) {
-  register int i,j,q,N,p,k,M, r;
-  N = p = k = M = 16;
+void ticketLock(void) {
+  register int i,j,q,p,myTicket;
+  int pid;
+  int N = 1500000;
+  int k = 0;
+  int M = 0;
 
-  ACQUIRE(gm->getTicket)
-  r = pid;
-  RELEASE(gm->getTicket)
+  q = 0;
+  p = 0;
 
+  GET_PID(pid)
   CLOCK(gm->start[pid])
   for (i = 0; i < N; i++) {
-    while (r != gm->t);
-    // CRITICAL SECITON
-    ACQUIRE(gm->lock) 
-    for (j = 0; j < k; j++) q++;
-    RELEASE(gm->lock)
-    gm->t += 1;
-    for (j = 0; j < k; j++) p++;
-    // Grab next ticket for processor
-    while (gm->t < gm->p);
+    //Get ticket
     ACQUIRE(gm->getTicket)
+    myTicket = gm->t;
     gm->t += 1;
-    r      = gm->t;
     RELEASE(gm->getTicket)
+
+    //Wait for processor's turn in critical section
+    while (myTicket != gm->r);
+    //Execute critical section, then increment number being serviced
+    for (j = 0; j < k; j++) q++;
+    gm->r++;
+
+    //Simulate non-critical section
+    for (j = 0; j < M; j++) p++;
   }
   CLOCK(gm->end[pid])
-  gm->a[pid] = p + q;
-}
-
-void pbksb_wrapper(void) {
-  int pid;
-  GET_PID(pid);
-  pbksb(pid);
+  gm->a[pid] = p+q;
 }
 
 int main(int argc,char **argv) {
@@ -51,13 +48,13 @@ int main(int argc,char **argv) {
 
   MAIN_INITENV
   gm = (GM*)G_MALLOC(sizeof(GM));
-  LOCKINIT(gm->lock);
   LOCKINIT(gm->getTicket);
   gm->a     = (int*)G_MALLOC(p*sizeof(int));
   gm->start   = (long int*)G_MALLOC(p*sizeof(long int));
   gm->end     = (long int*)G_MALLOC(p*sizeof(long int));
   gm->t = (int)G_MALLOC(sizeof(int));
   gm->t = 0;
+  gm->r = 0;
   p = gm->p = atoi(argv[1]);
   for(i = 0; i < p; i++) gm->a[i]= 0;
 
@@ -66,7 +63,7 @@ int main(int argc,char **argv) {
 
   // Create p Processes
   for(i = 0; i < p; i++)
-    CREATE(pbksb_wrapper)
+    CREATE(ticketLock)
 
   CLOCK(t1)
   WAIT_FOR_END(p-1)

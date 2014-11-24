@@ -16,12 +16,12 @@ void pbksb(void) {
   GET_PID(pid)
   //printf("Proc ID: %u\n",pid);
   CLOCK(gm->start[pid])
-  N = gm->p;
+  N = 1500000;
   for (i = 0; i < (N-1); i++) {
     ACQUIRE(gm->lock)
     q = 0;
-    k = gm->p;
-    M = gm->p;
+    k = 2000;
+    M = 0;
     for (j = 0; j < (k-1); j++) q++;
     RELEASE(gm->lock)
     p = 0;

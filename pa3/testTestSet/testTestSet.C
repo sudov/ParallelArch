@@ -9,22 +9,27 @@ typedef struct {
 
 GM *gm;
 
-void pbksb(void) {
+void testTestSet(void) {
   register int i,j,q,p,N,k,M;
   int pid;
  
   GET_PID(pid)
   //printf("Proc ID: %u\n",pid);
   CLOCK(gm->start[pid])
-  N = gm->p;
+  N = 1500000;
+  k = 0;
+  M = 0;
+
+  q = 0;
+  p = 0;
+
   for (i = 0; i < (N-1); i++) {
+    //Enter critical section
     LOCK(gm->lock)
-    q = 0;
-    k = gm->p;
-    M = gm->p;
     for (j = 0; j < (k-1); j++) q++;
     UNLOCK(gm->lock)
-    p = 0;
+
+    //Simulate non-critical section
     for (j = 0; j < (M-1); j++) p++;
   }
   CLOCK(gm->end[pid])
@@ -49,7 +54,7 @@ int main(int argc,char **argv) {
   gm->end   = (long int*)G_MALLOC(p*sizeof(long int));
 
   for(i = 0; i < p; i++)
-    CREATE(pbksb)
+    CREATE(testTestSet)
 
   CLOCK(t1)
   WAIT_FOR_END(p)
