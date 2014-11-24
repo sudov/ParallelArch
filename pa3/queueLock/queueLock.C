@@ -24,13 +24,13 @@ void queueLock(void) {
   CLOCK(gm->start[pid])
   for (i = 0; i < N; i++) {
     //Acquire lock.
-    /*
     LOCK(gm->indexLock)
     myIndex = gm->index;
-    if (myIndex >= (p-1)*64) gm->index = 0;
+
+    if (myIndex == (gm->p-1)*64) gm->index = 0;
     else gm->index += 64;
     UNLOCK(gm->indexLock)
-*/
+
     while(gm->queue[myIndex]);
     gm->queue[myIndex] = 1;
 
@@ -40,46 +40,12 @@ void queueLock(void) {
     //Unlock:
     //If this index points to the last spot in the queue, index=0 can go
     //Otherwise, myIndex+1 can go next
-    if (myIndex >= (p-1)*64) gm->queue[0] = 0;
+    if (myIndex == (gm->p-1)*64) gm->queue[0] = 0;
     else gm->queue[myIndex+64] = 0;
   }
   CLOCK(gm->end[pid])
   gm->a[pid] = p + q;
 }
-
-/*
-void queueLock(int pid) {
-  register int i,j,q,N,p,k,M, r;
-  N = 1500000;
-  B
-  k = 0
-  M = 0;
-  if (pid == 0) {
-    gm->queue[0] = 1;
-  }
-
-  CLOCK(gm->start[pid])
-  for (i = 0; i < N; i++) {
-    // printf("At proc: %d\n", pid);
-    while (gm->queue[8*pid] == 0);
-    B
-    // CRITICAL SECITON
-    LOCK(gm->lock) 
-    for (j = 0; j < k; j++) q++;
-    UNLOCK(gm->lock)
-    // printf("At proc: %d, next proc at loc: %d\n", pid, (8*pid + gm->p) % (8 * gm->p));
-    
-    LOCK(gm->increment) 
-    gm->queue[8*pid] = 0;
-    gm->queue[(8*pid + gm->p) % (8 * gm->p)] = 1;
-    UNLOCK(gm->increment)
-
-    p = 0;
-    for (j = 0; j < k; j++) p++;
-  }
-  CLOCK(gm->end[pid])
-  gm->a[pid] = p + q;
-}*/
 
 int main(int argc,char **argv) {
   int i,j,p,n;
@@ -89,14 +55,18 @@ int main(int argc,char **argv) {
   MAIN_INITENV
   gm = (GM*)G_MALLOC(sizeof(GM));
   LOCKINIT(gm->indexLock);
+  p = gm->p   = atoi(argv[1]);
   gm->a       = (int*)G_MALLOC(p*sizeof(int));
   gm->start   = (long int*)G_MALLOC(p*sizeof(long int));
   gm->end     = (long int*)G_MALLOC(p*sizeof(long int));
-  p = gm->p   = atoi(argv[1]);
-  gm->queue   = (int*)G_MALLOC(256*p/sizeof(int));
+  gm->queue   = (int*)G_MALLOC(256*p);
   gm->index   = (int)G_MALLOC(sizeof(int));
+  gm->index = 0;
   for(i = 0; i < p; i++) gm->a[i]= 0;
-  for(i = 0; i < (p*256/sizeof(int)); i++) gm->queue[i]= 0;
+  for(i = 0; i < (p*256/sizeof(int)); i++) {
+    if (i == 0) gm->queue[i]= 0;
+    else gm->queue[i] = 1;
+  }
 
   assert(p > 0);
   assert(p <= 8);
@@ -115,7 +85,6 @@ int main(int argc,char **argv) {
   G_FREE(gm->queue,p*64*sizeof(int))
   G_FREE(gm->start,p*sizeof(long int))
   G_FREE(gm->end,p*sizeof(long int))
-
   MAIN_END
   return 0;
 }
