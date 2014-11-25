@@ -17,14 +17,16 @@ void pbksb(void) {
   //printf("Proc ID: %u\n",pid);
   CLOCK(gm->start[pid])
   N = 1500000;
+  k = 1000;
+  M = 76;
+
+  q = 0;
+  p = 0;
+
   for (i = 0; i < (N-1); i++) {
     ACQUIRE(gm->lock)
-    q = 0;
-    k = 2000;
-    M = 0;
     for (j = 0; j < (k-1); j++) q++;
     RELEASE(gm->lock)
-    p = 0;
     for (j = 0; j < (M-1); j++) p++;
   }
   CLOCK(gm->end[pid])

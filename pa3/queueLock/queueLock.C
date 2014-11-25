@@ -12,8 +12,8 @@ GM *gm;
 void queueLock(void) {
   register int i,j,q,p;
   int N = 1500000;
-  int k = 0;
-  int M = 0;
+  int k = 1000;
+  int M = 76;
   int pid;
 
   q = 0;
